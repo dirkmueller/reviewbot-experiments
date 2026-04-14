@@ -72,12 +72,18 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
                                      pathname=copath, server_service_files=True, expand_link=True)
         os.rename(source_package, target_package)
 
+        disk = subprocess.run(["du", "-sk", "BUILD"], cwd=target_package, capture_output=True)
+        if int(disk.stdout.decode().partition('\t')[0]) > 100000:
+            print(f"{target_package} is too big, skipping")
+            return
+
         gemini = subprocess.run(["/usr/bin/gemini", "-o", "json", "-p", PROMPT],
                        cwd=target_package, timeout=600, capture_output=True)
-        resp = json.loads(gemini)
+        resp = json.loads(gemini.stdout)
+        # print(resp)
 
-        if not "ACCEPTABLE" in resp.response:
-            print(f"result: {resp.response}")
+        if not "ACCEPTABLE" in resp['response']:
+            print(f"result: {resp['response']}")
 
 
 
