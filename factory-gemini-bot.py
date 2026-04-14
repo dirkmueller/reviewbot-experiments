@@ -6,6 +6,8 @@ import subprocess
 import shutil
 import sys
 import ReviewBot
+from urllib.error import HTTPError
+
 
 
 PROMPT = """
@@ -71,6 +73,9 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
         FactoryReviewAI.checkout_package(self.scm, source_project, source_package, revision=source_revision,
                                      pathname=copath, server_service_files=True, expand_link=True)
         os.rename(source_package, target_package)
+
+        if target_package.startswith("python"):
+            print(f"skipping {target_package} for now")
 
         disk = subprocess.run(["du", "-sk", "BUILD"], cwd=target_package, capture_output=True)
         if int(disk.stdout.decode().partition('\t')[0]) > 100000:
