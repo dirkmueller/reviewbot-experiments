@@ -34,16 +34,18 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
 
         sourcedir = Path(pathname).absolute() / target_package
         builddir = sourcedir / 'BUILD'
-        subprocess.run(
+        un = subprocess.run(
             [
                 'rpmbuild',
                 '--nodeps',
                 '--define',
-                f'%_sourcedir {sourcedir}',
+                f'_sourcedir {sourcedir}',
+                '--define',
+                f'_specdir {sourcedir}',
                 '--define',
                 f'%_builddir {builddir}',
-                '--define',
-                '%_build_parts 0',
+                # '--define',
+                # '%_build_parts 0',
                 '-bp',
                 f'{target_package}.spec',
             ],
@@ -51,6 +53,10 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
             timeout=30,
             capture_output=True,
         )
+
+        if not builddir.exists():
+            raise RuntimeError(f"WARNING: failed to extract sources: {un.stderr}")
+
         return r
 
     def check_source_submission(
@@ -107,8 +113,9 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
         os.rename(source_package, target_package)
 
         if (
-            target_package.startswith('python')
-            or target_package.startswith('perl')
+            # source_project.startswith('KDE')
+            # or target_package.startswith('python')
+            target_package.startswith('perl')
             or target_package.startswith('rubygem')
         ):
             print(f'skipping {target_package} for now')
@@ -138,7 +145,7 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
             print('diff is empty, something went wrong')
             return
 
-        if diffsize > 4 * 1024 * 1024:
+        if diffsize > 40 * 1024 * 1024:
             print('diff is too large, skipping')
             return
 
