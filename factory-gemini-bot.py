@@ -137,8 +137,8 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
             )
 
         # generate a sensible diff
-        old_srcs = find_extracted_src_dir(Path(copath) / '_old' / 'BUILD')
-        new_srcs = find_extracted_src_dir(Path(copath) / target_package / 'BUILD')
+        old_srcs = find_extracted_src_dir(Path('_old') / 'BUILD')
+        new_srcs = find_extracted_src_dir(Path(target_package) / 'BUILD')
 
         subprocess.run(
             f'diff -Nur {old_srcs} {new_srcs} > diff',
