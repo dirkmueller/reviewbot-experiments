@@ -35,6 +35,15 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
 
         sourcedir = Path(pathname).absolute() / target_package
         builddir = sourcedir / 'BUILD'
+        if (sourcedir / '_multibuild').exists():
+            specfile = open(
+                sourcedir / f'{target_package}.spec', encoding='utf-8'
+            ).readlines()
+            with open(
+                sourcedir / f'{target_package}.spec', 'w', encoding='utf-8'
+            ) as spec:
+                spec.writelines([s.replace('@BUILD_FLAVOR@', '') for s in specfile])
+
         un = subprocess.run(
             [
                 'rpmbuild',
@@ -45,8 +54,6 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
                 f'_specdir {sourcedir}',
                 '--define',
                 f'%_builddir {builddir}',
-                # '--define',
-                # '%_build_parts 0',
                 '-bp',
                 f'{target_package}.spec',
             ],
