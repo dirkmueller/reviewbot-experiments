@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import contextlib
 import json
 import os
 import subprocess
@@ -121,11 +122,23 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
         os.rename(source_package, target_package)
 
         if (
-            # source_project.startswith('KDE')
-            # or target_package.startswith('python')
+            source_project.startswith('KDE:') or
+            # target_package.startswith('python') or
             target_package.startswith('perl') or target_package.startswith('rubygem')
         ):
             print(f'skipping {target_package} for now')
+            return
+
+
+        diffsize = 0
+        with contextlib.suppress(FileNotFoundError):
+            diffsize = Path('diff').stat().st_size
+        if diffsize == 0:
+            print('diff is empty, something went wrong')
+            return
+
+        if diffsize > 40 * 1024 * 1024:
+            print('diff is too large, skipping')
             return
 
         def find_extracted_src_dir(basedir: Path) -> Path:
