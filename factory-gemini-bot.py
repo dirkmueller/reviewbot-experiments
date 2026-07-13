@@ -45,6 +45,19 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
             ) as spec:
                 spec.writelines([s.replace('@BUILD_FLAVOR@', '') for s in specfile])
 
+        found_cpio_archive = False
+        for e in sourcedir.iterdir():
+            if e.suffix in ('.cpio', '.obscpio'):
+                cpio_extract = subprocess.run(
+                    ['cpio', '-id', '-I', e], cwd=sourcedir, timeout=180
+                )
+                found_cpio_archive = True
+
+        if found_cpio_archive:
+            build_run_services = subprocess.run(
+                ['/usr/lib/build/runservices'], cwd=sourcedir, timeout=360
+            )
+
         un = subprocess.run(
             [
                 'rpmbuild',
