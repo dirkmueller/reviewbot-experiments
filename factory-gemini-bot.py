@@ -72,7 +72,7 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
                 f'{target_package}.spec',
             ],
             cwd=sourcedir,
-            timeout=30,
+            timeout=600,
             capture_output=True,
         )
 
