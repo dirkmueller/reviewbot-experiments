@@ -18,9 +18,10 @@ PROMPT = """
 - When generating shell commands, you **MUST NOT** use command substitution with `$(...)`, `<(...)`, or `>(...)`.
 
 Check @diff and their referenced files. Analyze the code and any code in any of the referenced files for health and quality.
-read referenced files. for C or C++ check for integer overflows. Report any findings. "
-for go.mod files, check if any replacement is actually downgrading or not actually being used and reject that. "
-For any RPM .spec file, check if there any obvious typos or grammar in descriptions or unsafe code in the shell scriptlets or build sections. "
+read referenced files. for C or C++ check for integer overflows. Report any findings.
+for go.mod files, check if any replacement is actually downgrading or not actually being used and reject that.
+For any RPM .spec file, check if there any obvious typos or grammar in descriptions or unsafe code in the shell scriptlets or build sections.
+For any RPM .spec file, check if the License is copyleft (GPL, MPL or similar) and then require a `%license` to be in any of the file lists sections.
 Find and report unsafe code or potential vulnerabilities and say ACCEPTABLE if none found otherwise REJECT
 """
 
@@ -146,23 +147,10 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
         os.rename(source_package, target_package)
 
         if (
-            source_project.startswith('KDE:') or
-            # target_package.startswith('python') or
-            target_package.startswith('perl') or target_package.startswith('rubygem')
+            source_project.startswith('KDE:')
+            or target_package.startswith('rubygem')
         ):
             print(f'skipping {target_package} for now')
-            return
-
-
-        diffsize = 0
-        with contextlib.suppress(FileNotFoundError):
-            diffsize = Path('diff').stat().st_size
-        if diffsize == 0:
-            print('diff is empty, something went wrong')
-            return
-
-        if diffsize > 40 * 1024 * 1024:
-            print('diff is too large, skipping')
             return
 
         def find_extracted_src_dir(basedir: Path) -> Path:
