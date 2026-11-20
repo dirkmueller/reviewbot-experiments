@@ -183,12 +183,23 @@ class FactoryReviewAI(ReviewBot.ReviewBot):
             print('diff is too large, skipping')
             return
 
-        gemini = subprocess.run(
-            ['/usr/bin/gemini', '--skip-trust', '-o', 'json', '-p', PROMPT],
-            timeout=1200,
-            capture_output=True,
-            check=True,
-        )
+        gemini = None
+        for _ in range(9):
+            try:
+                gemini = subprocess.run(
+                    ['/usr/bin/gemini', '--skip-trust', '-o', 'json', '-p', PROMPT],
+                    timeout=3000,
+                    capture_output=True,
+                    check=True,
+                )
+                break
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 173:
+                    print("caught resource exhaustion exception.. waiting")
+                    time.sleep(300)
+                else:
+                    raise
+
         resp = json.loads(gemini.stdout)
         # print(resp)
 
